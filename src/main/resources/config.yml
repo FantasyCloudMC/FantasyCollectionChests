@@ -1,0 +1,53 @@
+database:
+  ip: '127.0.0.1'
+  port: 3306
+  database-name: 's1_collectionchests'
+  user: 'u1_iul32aNcyt'
+  password: 'BWdWOeUVqNoCA22sKdeivgkr'
+
+chest-options: # FIND MATERIAL NAMES HERE https://jd.andross.fr/spigot-1.8.8-R0.1-SNAPSHOT/javadoc/org/bukkit/Material.html
+  stored-materials: # FORMAT: MATERIAL:ROW:COLUMN:MAXAMOUNT:SELLPRICE:ITEMDISPLAYNAME
+    - 'ENDER_PEARL:3:1:4000:8.0:Ender Pearl'
+    - 'GHAST_TEAR:3:3:1000:24.0:Ghast Tear'
+    - 'IRON_INGOT:3:5:2000:12.0:Iron Ingot'
+    - 'MAGMA_CREAM:3:7:8000:10.0:Magma Cream'
+
+messages:
+  player-using-chest: '&c&l(&c!&c&l) &cYou cannot use a collection chest while another user is!'
+  not-enough-items: '&c&l(&c!&c&l) &cYou do not have that many items!'
+  sold-items: '&a&l(&f!&a&l) &aYou have sold &e%amount% &aitems for a total of &e$%price%&a.'
+  too-many-chests: '&c&l(&c!&c&l) &cYou cannot have more than one collection chest in a chunk!'
+  conjoined-chest: '&c&l(&c!&c&l) &cYou cannot conjoin a collection chest!'
+
+sellitem:
+  name: '&a%name% &fx&a%amount%'
+  lore:
+  - '&7Left Click: Sell 1'
+  - '&7Right Click: Sell 64'
+  - '&7Shift + Right Click: Sell all'
+
+sellallitem: # FIND MATERIAL NAMES HERE https://jd.andross.fr/spigot-1.8.8-R0.1-SNAPSHOT/javadoc/org/bukkit/Material.html
+  material: GOLD_NUGGET
+  name: '&6Sell all items'
+  lore:
+  - '&7Current value: &e$%value%'
+
+chestitem:
+  name: '&a&lCollection Chest'
+  lore:
+  - '&7A handy memory that collects mob loot.'
+  - ''
+  - '&a&lDESCRIPTION'
+  - '&7This memory will automatically collect the'
+  - '&7loot from mobs that die within this chunk.'
+  - ''
+  - '&7You may also sell the bin''s contents in return for money.'
+  - ''
+  - '&a&lLIMITATIONS'
+  - '  &7&l* &fMax of &a&n1&f per chunk'
+  - '  &7&l* &fOnly works in 1 single chunk'
+  - ''
+  - '&a&lFEATURES'
+  - '  &7&l* &fOption to sell contents for &a$'
+  - '  &7&l* &fWhen all players leave the chunk, the &a&ntotal value&f'
+  - '  &fwill be given to the &aLast Seller&f.'

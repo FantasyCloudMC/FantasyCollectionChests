@@ -1,0 +1,11 @@
+name: FantasyCollectionChests
+main: com.fantasycloud.fantasycollectionchests.FantasyCollectionChests
+author: Oscazz
+description: Fantasy collection chests plugin.
+version: 1.0-SNAPSHOT
+depend: [FantasyCommons, Vault, FantasyCharms]
+
+commands:
+  collectionchest:
+    description: 'Give collection chest to player'
+    aliases: [cchest]
