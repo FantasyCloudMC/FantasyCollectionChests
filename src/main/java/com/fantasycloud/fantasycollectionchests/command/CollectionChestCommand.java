@@ -42,15 +42,13 @@ public class CollectionChestCommand extends BaseCommand {
     @Subcommand("forceupdate")
     @CommandPermission("collectionchests.forceupdate")
     public void onUpdateCommand(CommandSender sender) {
-        Bukkit.getScheduler().runTaskAsynchronously(FantasyCollectionChests.getInstance(), () -> {
-            int count = FantasyCollectionChests.getInstance().getChestMemory().getChestCache().size();
-            FantasyCollectionChests.getInstance().getChestMemory().getChestCache().forEach((chunk, chest) -> {
-                // ignore null cached chests.
-                if (chest == null) return;
-                FantasyCollectionChests.getInstance().getChestSaver().saveChest(chest);
-            });
-            sender.sendMessage(CommonsUtil.color("&a&l(&f!&a&l) &aSuccess! &e" + count + " &achests were updated."));
+        int count = FantasyCollectionChests.getInstance().getChestMemory().getChestCache().size();
+        FantasyCollectionChests.getInstance().getChestMemory().getChestCache().forEach((chunk, chest) -> {
+            // ignore null cached chests.
+            if (chest == null) return;
+            FantasyCollectionChests.getInstance().getChestSaver().saveChest(chest);
         });
+        sender.sendMessage(CommonsUtil.color("&a&l(&f!&a&l) &aSuccess! &e" + count + " &achests were updated."));
     }
 
     @Subcommand("reload")

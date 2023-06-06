@@ -30,7 +30,7 @@ public class CollectionStorage {
     public CollectionStorage(int id, String itemData) {
         this.id = id;
         this.items = this.getItemsFromString(itemData);
-        this.monitor = new ChestMonitor(this);
+        this.monitor = new ChestMonitor();
     }
 
     public long calculateItemCount() {

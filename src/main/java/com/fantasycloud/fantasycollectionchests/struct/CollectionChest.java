@@ -38,6 +38,10 @@ public class CollectionChest {
         this.lastSellerId = player.getUniqueId();
     }
 
+    public void getLastUser(Player player) {
+
+    }
+
     public int getId() {
         return id;
     }

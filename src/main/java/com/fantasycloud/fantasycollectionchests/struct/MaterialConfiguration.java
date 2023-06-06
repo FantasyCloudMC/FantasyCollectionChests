@@ -22,6 +22,7 @@ public class MaterialConfiguration {
 
     public Material getMaterial() {
         return this.material;
+
     }
 
     public int getRow() {

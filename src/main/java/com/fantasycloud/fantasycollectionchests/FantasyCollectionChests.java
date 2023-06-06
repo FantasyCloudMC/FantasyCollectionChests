@@ -84,7 +84,8 @@ public class FantasyCollectionChests extends JavaPlugin {
                 new PlayerInteractListener(),
                 new BlockBreakListener(),
                 new ChestSellListener(this.configManager, this.economy),
-                new BlockExplodeListener()
+                new BlockExplodeListener(),
+                new FarmListener()
         ).forEach(this::registerListener);
 
         this.chestAssurer.assureAllChests();

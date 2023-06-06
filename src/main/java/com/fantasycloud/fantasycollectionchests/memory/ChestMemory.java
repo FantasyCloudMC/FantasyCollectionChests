@@ -49,11 +49,12 @@ public class ChestMemory {
             return this.chestCache.get(chunk);
         }
         CollectionChest fetched = FantasyCollectionChests.getInstance().getChestFetcher().fetchChest(chunk);
-        this.registerCacheChest(chunk, fetched); // can be null, fill map with null value to prevent repetitive queries.
+        this.registerCacheChest(chunk, fetched); // can be null, fill map with null value to prevent repetitive queries. (TEMPORARILY DISABLED)
         return fetched;
     }
 
     public void registerCacheChest(Chunk chunk, CollectionChest collectionChest) {
+        if(collectionChest == null) return; // In attempt to fix collection chests resetting, disabling null-values.
         this.getChestCache().put(chunk, collectionChest);
     }
 

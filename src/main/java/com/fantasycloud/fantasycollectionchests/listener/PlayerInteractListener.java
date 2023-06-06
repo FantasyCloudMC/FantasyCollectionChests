@@ -61,9 +61,9 @@ public class PlayerInteractListener implements Listener {
 
         CollectionChest collectionChest = FantasyCollectionChests.getInstance().getChestMemory().getChest(event.getClickedBlock().getLocation());
 
-        if (collectionChest == null) {
-            FantasyCollectionChests.getInstance().getChestMemory().registerCacheChest(event.getClickedBlock().getLocation(), new CollectionChest(new Random().nextInt(9999), event.getClickedBlock().getLocation()));
-        }
+     //   if (collectionChest == null) {
+     //       FantasyCollectionChests.getInstance().getChestMemory().registerCacheChest(event.getClickedBlock().getLocation(), new CollectionChest(new Random().nextInt(9999), event.getClickedBlock().getLocation()));
+     //   }
 
         Bukkit.getScheduler().runTaskAsynchronously(FantasyCollectionChests.getInstance(), () -> {
             CollectionChest cc = FantasyCollectionChests.getInstance().getChestMemory().getChest(event.getClickedBlock().getLocation());
