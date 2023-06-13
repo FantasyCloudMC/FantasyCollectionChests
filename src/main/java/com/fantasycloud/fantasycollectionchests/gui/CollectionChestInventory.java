@@ -38,19 +38,7 @@ public class CollectionChestInventory implements InventoryProvider {
     private final SmartInventory inventory;
 
     public CollectionChestInventory() {
-        this.playerChest = ExpiringMap.builder()
-                .expiration(1, TimeUnit.MINUTES)
-                .expirationListener((ExpirationListener<UUID, CollectionChest>) (uuid, collectionChest) -> {
-                    Player player = Bukkit.getPlayer(uuid);
-                    if (player != null && player.isOnline()) {
-                        Inventory topInventory = player.getOpenInventory().getTopInventory();
-                        if (topInventory != null && topInventory.getTitle().equalsIgnoreCase("Collection Chest Contents")) {
-                            player.closeInventory();
-                        }
-                    } else {
-                        this.playerChest.remove(uuid);
-                    }
-                }).build();
+        this.playerChest = new HashMap<>();
         this.inventory = SmartInventory.builder()
                 .title("Collection Chest Contents")
                 .type(InventoryType.CHEST)
@@ -67,6 +55,13 @@ public class CollectionChestInventory implements InventoryProvider {
     @Override
     public void init(Player player, InventoryContents contents) {
         CollectionChest chest = this.playerChest.get(player.getUniqueId());
+        if (chest == null) {
+            // Handle the case when the chest is not found
+            player.sendMessage("Error: Collection Chest not found!");
+            player.closeInventory();
+            return;
+        }
+
         contents.fill(ClickableItem.empty(
                 CommonsUtil.createItem(
                         Material.STAINED_GLASS_PANE,
@@ -78,25 +73,39 @@ public class CollectionChestInventory implements InventoryProvider {
 
         FantasyCollectionChests plugin = FantasyCollectionChests.getInstance();
         if (plugin == null) {
-            FantasyCollectionChests.getInstance().getLogger().log(Level.WARNING, "FantasyCollectionChests plugin instance is null.");
+            // Handle the case when the plugin instance is null
+            player.sendMessage("Error: Plugin instance not found!");
+            player.closeInventory();
             return;
         }
 
-        List<MaterialConfiguration> materialConfigurations = plugin.getChestConfiguration().getMaterialConfigurations();
+        ChestConfiguration chestConfig = plugin.getChestConfiguration();
+        if (chestConfig == null) {
+            // Handle the case when the chest configuration is null
+            player.sendMessage("Error: Chest configuration not found!");
+            player.closeInventory();
+            return;
+        }
+
+        List<MaterialConfiguration> materialConfigurations = chestConfig.getMaterialConfigurations();
         if (materialConfigurations == null) {
-            FantasyCollectionChests.getInstance().getLogger().log(Level.WARNING, "Material configurations list is null.");
+            // Handle the case when the material configurations list is null
+            player.sendMessage("Error: Material configurations not found!");
+            player.closeInventory();
             return;
         }
 
         for (MaterialConfiguration materialConfiguration : materialConfigurations) {
             if (materialConfiguration == null) {
-                FantasyCollectionChests.getInstance().getLogger().log(Level.WARNING, "Material configuration is null.");
+                // Handle the case when a material configuration is null
+                player.sendMessage("Error: Material configuration not found!");
                 continue;
             }
 
             Material material = materialConfiguration.getMaterial();
             if (material == null) {
-                FantasyCollectionChests.getInstance().getLogger().log(Level.WARNING, "Material is null for a material configuration.");
+                // Handle the case when the material is null
+                player.sendMessage("Error: Material not found in material configuration!");
                 continue;
             }
 
@@ -108,16 +117,17 @@ public class CollectionChestInventory implements InventoryProvider {
                     ClickableItem.of(
                             CommonsUtil.createItem(
                                     material,
-                                    plugin.getChestConfiguration().getMaterialName()
+                                    chestConfig.getMaterialName()
                                             .replace("%name%", materialConfiguration.getDisplayName())
                                             .replace("%amount%", String.valueOf(chest.getStorage().getCount(material))),
                                     (int) Math.min(chest.getStorage().getCount(material), 64L),
                                     0,
-                                    plugin.getChestConfiguration().getMaterialLore()
+                                    chestConfig.getMaterialLore()
                             ), event -> {
                                 Material materialClicked = materialConfiguration.getMaterial();
                                 if (materialClicked == null) {
-                                    FantasyCollectionChests.getInstance().getLogger().log(Level.WARNING, "Material clicked is null.");
+                                    // Handle the case when the clicked material is null
+                                    player.sendMessage("Error: Clicked material not found!");
                                     return;
                                 }
 
@@ -176,14 +186,14 @@ public class CollectionChestInventory implements InventoryProvider {
 
         double sellPrice = this.calculateSellPrice(chest);
         String sellPriceString = plugin.getEconomy().format(sellPrice);
-        List<String> lore = new ArrayList<>(plugin.getChestConfiguration().getSellAllLore());
+        List<String> lore = new ArrayList<>(chestConfig.getSellAllLore());
         for (int i = 0; i < lore.size(); i++) {
             lore.set(i, lore.get(i).replace("%value%", sellPriceString));
         }
         contents.set(SlotPos.of(4, 5), ClickableItem.of(
                 CommonsUtil.createItem(
-                        plugin.getChestConfiguration().getSellAllMaterial(),
-                        plugin.getChestConfiguration().getSellAllName(),
+                        chestConfig.getSellAllMaterial(),
+                        chestConfig.getSellAllName(),
                         1,
                         0,
                         lore
@@ -214,14 +224,17 @@ public class CollectionChestInventory implements InventoryProvider {
     @Override
     public void update(Player player, InventoryContents contents) {
         CollectionChest chest = this.playerChest.get(player.getUniqueId());
+        if (chest == null) {
+            // Handle the case when the chest is not found
+            player.sendMessage("Error: Collection Chest not found!");
+            player.closeInventory();
+            return;
+        }
 
         ItemStack chestMonitor = CommonsUtil.createItem(Material.WATCH, "&a&lChest Monitor", "&7Calculate your chest earnings.",
                 "&aIron Ingot: &fx" + chest.getStorage().getMonitor().getRate(Material.IRON_INGOT, "5m") + "&7/5 minutes",
-       //         "&aIron Ingot: &fx" + chest.getStorage().getMonitor().getPerFifteenMinAvg(Material.IRON_INGOT) + "&7/15 minutes",
-               // "&aIron Ingot: &fx" + chest.getStorage().getMonitor().getPerHalfHourAvg(Material.IRON_INGOT) + "&7/30 minutes",
-             //   "&aIron Ingot: &fx" + chest.getStorage().getMonitor().getPerHourAvg(Material.IRON_INGOT) + "&7/1 hour",
-
-
+                "&aGold Ingot: &fx" + chest.getStorage().getMonitor().getRate(Material.GOLD_INGOT, "5m") + "&7/5 minutes",
+                "&aDiamond: &fx" + chest.getStorage().getMonitor().getRate(Material.DIAMOND, "5m") + "&7/5 minutes",
                 "",
                 "&7&oUpdating in " + (int) (chest.getStorage().getMonitor().getMillisUntilUpdate() / 1000) + "s "
         );
@@ -243,27 +256,28 @@ public class CollectionChestInventory implements InventoryProvider {
             long amount = chest.getStorage().getCount(material);
             price += amount * materialConfiguration.getSellPrice();
         }
-        return price;
+        DecimalFormat decimalFormat = new DecimalFormat("#.##");
+        return Double.parseDouble(decimalFormat.format(price));
     }
 
-    /**
-     * @return if that chest was already registered.
-     */
-    public boolean registerPlayerChest(Player player, CollectionChest chest) {
-        if (chest == null) {
-            return false;
-        }
-        if (this.getPlayerChests().values().contains(chest)) return true;
+    public void openInventory(Player player, CollectionChest chest) {
         this.playerChest.put(player.getUniqueId(), chest);
-        return false;
+        this.inventory.open(player);
     }
 
     public Map<UUID, CollectionChest> getPlayerChests() {
         return this.playerChest;
     }
 
-    public SmartInventory getInventory() {
-        return this.inventory;
+    public boolean registerPlayerChest(Player player, CollectionChest cc) {
+        for (CollectionChest chest : playerChest.values()) {
+            if (chest.getLocation().equals(cc.getLocation())) {
+                return false; // Another player is already in the collection chest
+            }
+        }
+
+        playerChest.put(player.getUniqueId(), cc);
+        return true;
     }
 
 }

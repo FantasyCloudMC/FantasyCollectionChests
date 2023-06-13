@@ -1,5 +1,6 @@
 package com.fantasycloud.fantasycollectionchests.struct;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -7,10 +8,12 @@ import java.util.UUID;
 
 public class CollectionChest {
 
-    // id derived from the sql database.
     private final int id;
     private final BlockLocation location;
+    private final Location bukkitLocation;
     private final CollectionStorage storage;
+    private boolean inUse;
+    private UUID owner;
 
     private String lastSellerName;
     private UUID lastSellerId;
@@ -31,6 +34,18 @@ public class CollectionChest {
         this.id = id;
         this.location = location;
         this.storage = storage;
+        this.inUse = false;
+        this.bukkitLocation = null;
+        this.owner = null;
+    }
+
+    public CollectionChest(Location location) {
+        this.id = -1; // Assign a unique ID or use a placeholder value
+        this.location = null; // Assign the corresponding BlockLocation
+        this.storage = null; // Assign the corresponding CollectionStorage
+        this.inUse = false;
+        this.bukkitLocation = location;
+        this.owner = null;
     }
 
     public void setLastSeller(Player player) {
@@ -38,33 +53,52 @@ public class CollectionChest {
         this.lastSellerId = player.getUniqueId();
     }
 
-    public void getLastUser(Player player) {
-
+    public Player getLastUser() {
+        if (lastSellerId != null) {
+            return Bukkit.getPlayer(lastSellerId);
+        }
+        return null;
     }
+
 
     public int getId() {
         return id;
     }
 
     public CollectionStorage getStorage() {
-        return this.storage;
+        return storage;
     }
 
-
     public BlockLocation getLocation() {
-        return this.location;
+        return location;
+    }
+
+    public UUID getOwner() {
+        return owner;
+    }
+
+    public void setOwner(UUID owner) {
+        this.owner = owner;
     }
 
     @Override
     public boolean equals(Object object) {
+        if (this == object) return true;
         if (!(object instanceof CollectionChest)) return false;
-        return ((CollectionChest) object).getId() == this.id;
+        CollectionChest that = (CollectionChest) object;
+        return id == that.id;
     }
 
     @Override
     public int hashCode() {
-        long hilo = this.getLocation().hashCode() ^ this.getId();
-        return ((int) (hilo >> 32)) ^ (int) hilo;
+        return Integer.hashCode(id);
     }
 
+    public boolean isInUse() {
+        return inUse;
+    }
+
+    public void setInUse(boolean inUse) {
+        this.inUse = inUse;
+    }
 }

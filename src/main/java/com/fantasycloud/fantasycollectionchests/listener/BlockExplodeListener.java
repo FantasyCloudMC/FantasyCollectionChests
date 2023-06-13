@@ -19,9 +19,9 @@ import java.util.List;
 
 public class BlockExplodeListener implements Listener {
 
-	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onExplode(EntityExplodeEvent event){
-        for (Block chest : event.blockList()){
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onExplode(EntityExplodeEvent event) {
+        for (Block chest : event.blockList()) {
             if (chest.getType() != Material.CHEST) continue;
             //event.setCancelled(true);
             chest.setType(Material.AIR);
@@ -31,7 +31,6 @@ public class BlockExplodeListener implements Listener {
                 FantasyCollectionChests.getInstance().getChestSaver().removeChest(chest.getLocation());
             });
         }
-
-        }
+    }
 
 }

@@ -1,6 +1,7 @@
 package com.fantasycloud.fantasycollectionchests.command;
 
 import com.fantasycloud.fantasycollectionchests.FantasyCollectionChests;
+import com.fantasycloud.fantasycollectionchests.gui.CollectionChestInventory;
 import com.fantasycloud.fantasycollectionchests.item.CollectionChestItem;
 import com.fantasycloud.fantasycommons.acf.BaseCommand;
 import com.fantasycloud.fantasycommons.acf.annotation.CommandAlias;
@@ -55,13 +56,25 @@ public class CollectionChestCommand extends BaseCommand {
     @CommandPermission("collectionchests.reload")
     public void onReloadCommand(CommandSender commandSender) {
         List<UUID> toClose = new ArrayList<>();
-        FantasyCollectionChests.getInstance().getChestInventory().getPlayerChests().forEach((uuid, chest) -> {
-            toClose.add(uuid);
+        CollectionChestInventory chestInventory = FantasyCollectionChests.getInstance().getChestInventory();
+
+        chestInventory.getPlayerChests().forEach((uuid, chest) -> {
+            Player player = Bukkit.getPlayer(String.valueOf(uuid));
+            if (player != null) {
+                player.closeInventory();
+                toClose.add(uuid);
+            }
         });
-        toClose.forEach(uuid -> Bukkit.getPlayer(uuid).closeInventory());
+
+
+
+
+        toClose.forEach(uuid -> chestInventory.getPlayerChests().remove(uuid));
         FantasyCollectionChests.getInstance().getChestConfiguration().reloadConfiguration();
         commandSender.sendMessage(CommonsUtil.color("&a&l(&f!&a&l) &aConfiguration has been reloaded."));
     }
+
+
 
     @Subcommand("ensure")
     @CommandPermission("collectionchests.ensure")
