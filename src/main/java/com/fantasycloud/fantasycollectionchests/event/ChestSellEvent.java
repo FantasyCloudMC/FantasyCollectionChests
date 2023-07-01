@@ -2,20 +2,17 @@ package com.fantasycloud.fantasycollectionchests.event;
 
 import com.fantasycloud.fantasycollectionchests.struct.BlockLocation;
 import com.fantasycloud.fantasycollectionchests.struct.CollectionChest;
-import com.massivecraft.factions.FPlayer;
-import com.massivecraft.factions.Faction;
-import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 
-public class ChestSellEvent extends PlayerEvent {
-
+public class ChestSellEvent extends PlayerEvent
+{
     private final CollectionChest chest;
-    private double totalValue;
+    private final double totalValue;
+    private static final HandlerList handlers;
 
-    public ChestSellEvent(Player player, CollectionChest chest, double totalValue) {
+    public ChestSellEvent(final Player player, final CollectionChest chest, final double totalValue) {
         super(player);
         this.chest = chest;
         this.totalValue = totalValue;
@@ -33,15 +30,15 @@ public class ChestSellEvent extends PlayerEvent {
         return this.totalValue;
     }
 
-    private static final HandlerList handlers = new HandlerList();
-
     public static HandlerList getHandlerList() {
-        return handlers;
+        return ChestSellEvent.handlers;
     }
 
-    @Override
     public HandlerList getHandlers() {
         return ChestSellEvent.handlers;
     }
 
+    static {
+        handlers = new HandlerList();
+    }
 }

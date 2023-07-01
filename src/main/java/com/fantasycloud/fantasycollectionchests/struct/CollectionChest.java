@@ -1,9 +1,16 @@
 package com.fantasycloud.fantasycollectionchests.struct;
 
+import com.fantasycloud.fantasycollectionchests.FantasyCollectionChests;
+import com.fantasycloud.fantasycollectionchests.event.ChestSellEvent;
+import com.fantasycloud.fantasycollectionchests.gui.CollectionChestInventory;
+import com.fantasycloud.fantasycommons.util.CommonsUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 
+import java.text.DecimalFormat;
 import java.util.UUID;
 
 public class CollectionChest {
@@ -17,6 +24,7 @@ public class CollectionChest {
 
     private String lastSellerName;
     private UUID lastSellerId;
+
 
     public CollectionChest(int id, Location location) {
         this(id, new BlockLocation(location));
@@ -37,15 +45,36 @@ public class CollectionChest {
         this.inUse = false;
         this.bukkitLocation = null;
         this.owner = null;
-    }
 
-    public CollectionChest(Location location) {
-        this.id = -1; // Assign a unique ID or use a placeholder value
-        this.location = null; // Assign the corresponding BlockLocation
-        this.storage = null; // Assign the corresponding CollectionStorage
-        this.inUse = false;
-        this.bukkitLocation = location;
-        this.owner = null;
+        FantasyCollectionChests plugin = FantasyCollectionChests.getInstance();
+     /*   new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (storage == null || location == null || bukkitLocation == null || bukkitLocation.getBlock().getType() != Material.CHEST) {
+                    cancel();
+                    return;
+                }
+
+                Player lastUser = getLastUser();
+
+                if (lastUser != null) {
+                    long count = storage.calculateItemCount();
+                    if (count < 1) {
+                        return;
+                    }
+                    double realPrice = CollectionChestInventory.calculateSellPrice(CollectionChest.this);
+                    String realPriceString = plugin.getEconomy().format(realPrice);
+                    storage.clearChest();
+                    plugin.getChestMemory().registerCacheChest(CollectionChest.this);
+                    Bukkit.getPluginManager().callEvent(new ChestSellEvent(lastUser, CollectionChest.this, realPrice));
+                    plugin.getEconomy().depositPlayer(lastUser, realPrice);
+                    CommonsUtil.sendMessage(lastUser, "&a&l[AUTO SELL] &a&l+ &a&n" + realPriceString);
+                }
+
+
+            }
+        }.runTaskTimer(plugin, 20, 60 * 20);
+        */
     }
 
     public void setLastSeller(Player player) {

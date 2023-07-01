@@ -3,7 +3,7 @@ main: com.fantasycloud.fantasycollectionchests.FantasyCollectionChests
 author: Oscazz
 description: Fantasy collection chests plugin.
 version: 1.0-SNAPSHOT
-depend: [FantasyCommons, Vault, FantasyCharms]
+depend: [FantasyCommons, Vault]
 
 commands:
   collectionchest:

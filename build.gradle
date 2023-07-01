@@ -36,6 +36,8 @@ dependencies {
     compileOnly 'com.massivecraft:factions:1.6.9.5-U0.2.3'
     compileOnly 'org.projectlombok:lombok:1.18.26'
     compileOnly 'com.fantasycloud:FantasyCharms:1.0-SNAPSHOT'
+    compileOnly 'com.fantasycloud:FantasyEnchantments:1.0-SNAPSHOT'
+    compileOnly 'me.krizzdawg:FantasyCore:1.0-SNAPSHOT'
 }
 
 group = 'com.fantasycloud'

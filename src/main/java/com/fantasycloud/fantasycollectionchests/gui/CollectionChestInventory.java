@@ -5,31 +5,26 @@ import com.fantasycloud.fantasycollectionchests.configuration.ChestConfiguration
 import com.fantasycloud.fantasycollectionchests.event.ChestSellEvent;
 import com.fantasycloud.fantasycollectionchests.struct.CollectionChest;
 import com.fantasycloud.fantasycollectionchests.struct.MaterialConfiguration;
-import com.fantasycloud.fantasycollectionchests.struct.monitor.ChestMonitor;
 import com.fantasycloud.fantasycommons.inventory.ClickableItem;
 import com.fantasycloud.fantasycommons.inventory.InventoryListener;
 import com.fantasycloud.fantasycommons.inventory.SmartInventory;
 import com.fantasycloud.fantasycommons.inventory.content.InventoryContents;
 import com.fantasycloud.fantasycommons.inventory.content.InventoryProvider;
 import com.fantasycloud.fantasycommons.inventory.content.SlotPos;
+import com.fantasycloud.fantasycommons.item.SkullCreator;
 import com.fantasycloud.fantasycommons.util.CommonsUtil;
-import com.fantasycloud.fantasycommons.util.TimeUtil;
-import net.jodah.expiringmap.ExpirationListener;
-import net.jodah.expiringmap.ExpiringMap;
+import com.google.common.collect.Lists;
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.text.DecimalFormat;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 public class CollectionChestInventory implements InventoryProvider {
@@ -190,7 +185,7 @@ public class CollectionChestInventory implements InventoryProvider {
         for (int i = 0; i < lore.size(); i++) {
             lore.set(i, lore.get(i).replace("%value%", sellPriceString));
         }
-        contents.set(SlotPos.of(4, 5), ClickableItem.of(
+        contents.set(SlotPos.of(4, 4), ClickableItem.of(
                 CommonsUtil.createItem(
                         chestConfig.getSellAllMaterial(),
                         chestConfig.getSellAllName(),
@@ -212,6 +207,7 @@ public class CollectionChestInventory implements InventoryProvider {
                                     .replace("%amount%", String.valueOf(count))
                                     .replace("%price%", realPriceString)
                     );
+                    chest.setLastSeller(player);
                     chest.getStorage().clearChest();
                     plugin.getChestMemory().registerCacheChest(chest);
                     Bukkit.getPluginManager().callEvent(new ChestSellEvent(player, chest, realPrice));
@@ -230,32 +226,51 @@ public class CollectionChestInventory implements InventoryProvider {
             player.closeInventory();
             return;
         }
+/*
+        ItemStack autoSell = SkullCreator.fromBase64(SkullCreator.Type.ITEM, "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzkwZjYyZWM1ZmEyZTkzZTY3Y2YxZTAwZGI4YWY0YjQ3YWM3YWM3NjlhYTA5YTIwM2ExZjU3NWExMjcxMGIxMCJ9fX0=");
 
-        ItemStack chestMonitor = CommonsUtil.createItem(Material.WATCH, "&a&lChest Monitor", "&7Calculate your chest earnings.",
+        Player lastUser = chest.getLastUser();
+
+        if (lastUser != null && lastUser.isOnline()) {
+            CommonsUtil.modifyItem(autoSell, "&a&lAuto Sell: ENABLED", Lists.newArrayList(
+                    "",
+                    "&aYou valuables will automatically be sold and",
+                    "&adeposited into the last seller's balance.",
+                    "",
+                    "&a&lLast Seller: &f" + lastUser.getName() + ""));
+
+            contents.set(SlotPos.of(4, 3), ClickableItem.empty(autoSell));
+        }
+        */
+     /*   ItemStack chestMonitor = CommonsUtil.createItem(Material.WATCH, "&a&lChest Monitor", "&7Calculate your chest earnings.",
                 "&aIron Ingot: &fx" + chest.getStorage().getMonitor().getRate(Material.IRON_INGOT, "5m") + "&7/5 minutes",
                 "&aGold Ingot: &fx" + chest.getStorage().getMonitor().getRate(Material.GOLD_INGOT, "5m") + "&7/5 minutes",
                 "&aDiamond: &fx" + chest.getStorage().getMonitor().getRate(Material.DIAMOND, "5m") + "&7/5 minutes",
                 "",
                 "&7&oUpdating in " + (int) (chest.getStorage().getMonitor().getMillisUntilUpdate() / 1000) + "s "
-        );
-        contents.set(SlotPos.of(4, 3), ClickableItem.empty(chestMonitor));
+        ); */
+        // contents.set(SlotPos.of(4, 3), ClickableItem.empty(chestMonitor));
     }
 
-    private double calculateSellPrice(CollectionChest chest) {
-        double price = 0.0;
-        for (MaterialConfiguration materialConfiguration : FantasyCollectionChests.getInstance().getChestConfiguration().getMaterialConfigurations()) {
+    public static double calculateSellPrice(CollectionChest chest) {
+        double price = 0.0D;
+        Iterator var4 = FantasyCollectionChests.getInstance().getChestConfiguration().getMaterialConfigurations().iterator();
+
+        while (var4.hasNext()) {
+            MaterialConfiguration materialConfiguration = (MaterialConfiguration) var4.next();
             if (materialConfiguration == null) {
                 FantasyCollectionChests.getInstance().getLogger().log(Level.WARNING, "Material configuration is null.");
-                continue;
+            } else {
+                Material material = materialConfiguration.getMaterial();
+                if (material == null) {
+                    FantasyCollectionChests.getInstance().getLogger().log(Level.WARNING, "Material is null for a material configuration.");
+                } else {
+                    long amount = chest.getStorage().getCount(material);
+                    price += (double) amount * materialConfiguration.getSellPrice();
+                }
             }
-            Material material = materialConfiguration.getMaterial();
-            if (material == null) {
-                FantasyCollectionChests.getInstance().getLogger().log(Level.WARNING, "Material is null for a material configuration.");
-                continue;
-            }
-            long amount = chest.getStorage().getCount(material);
-            price += amount * materialConfiguration.getSellPrice();
         }
+
         DecimalFormat decimalFormat = new DecimalFormat("#.##");
         return Double.parseDouble(decimalFormat.format(price));
     }

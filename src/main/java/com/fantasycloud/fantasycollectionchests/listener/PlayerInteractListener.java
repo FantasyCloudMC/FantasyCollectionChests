@@ -6,8 +6,6 @@ import com.fantasycloud.fantasycommons.util.CommonsUtil;
 import com.massivecraft.factions.*;
 import com.massivecraft.factions.access.AccessChunk;
 import com.massivecraft.factions.access.AccessPerm;
-import com.massivecraft.factions.struct.Relation;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Chest;
@@ -16,16 +14,15 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class PlayerInteractListener implements Listener {
 
     private final Set<Location> lockedChests = new HashSet<>();
     private final Map<Location, UUID> chestOwners = new HashMap<>();
+    private final Map<UUID, Long> lastAccessed = new HashMap<>();
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
@@ -46,17 +43,48 @@ public class PlayerInteractListener implements Listener {
 
         Player player = event.getPlayer();
 
+        FPlayer opener = FPlayers.getInstance().getByPlayer(event.getPlayer());
+        Faction factionAt = Board.getInstance().getFactionAt(new FLocation(chest.getLocation()));
+        if (event.getPlayer().getLocation().distance(chest.getLocation()) > 10.0D)
+            return;
+        try {
+            AccessChunk accessChunk = factionAt.getFactionAccess().getAccessChunk(event.getClickedBlock().getLocation().getChunk(), false);
+            boolean hasChunkAccess = false;
+            if (accessChunk != null)
+                hasChunkAccess = accessChunk.hasPermission(opener, AccessPerm.COLLECTIONCHEST);
+            if (!hasChunkAccess &&
+                    !factionAt.isWilderness() && opener.getFaction().getUniqueId() != factionAt.getUniqueId()) {
+                event.getPlayer().sendMessage(CommonsUtil.color("&a&lCollection Chests &7&l➥ &cYou cannot access a collection chest you do not own!"));
+                return;
+            }
+        } catch (NullPointerException e) {
+            if (!factionAt.getUniqueId().equals(opener.getFaction().getUniqueId())) {
+                event.getPlayer().sendMessage(CommonsUtil.color("&a&lCollection Chests &7&l➥ &cYou cannot access a collection chest you do not own!"));
+                return;
+            }
+        }
+
+        String coordString = chestLocation.getBlock().getChunk().getX() + ":" + chestLocation.getBlock().getChunk().getZ();
+        UUID chestUUID = UUID.nameUUIDFromBytes(coordString.getBytes(StandardCharsets.UTF_8));
+
+        if (lastAccessed.containsKey(chestUUID) && System.currentTimeMillis() - lastAccessed.get(chestUUID) < 10000) {
+            String timeLeft = String.valueOf((10000 - (System.currentTimeMillis() - lastAccessed.get(chestUUID))) / 1000);
+            player.sendMessage(CommonsUtil.color("&a&lCollection Chests &7&l➥ &cYou have to wait a &f&l"+ timeLeft +"&c seconds before you can open this chest again."));
+            return;
+        }
+
         if (!isChestAvailable(chestLocation)) {
-            player.sendMessage(CommonsUtil.color("&a&lFantasy&f&lCChest &7&l➥ &cYou cannot open this collection chest because it is already opened by another player."));
+            player.sendMessage(CommonsUtil.color("&a&lCollection Chests &7&l➥ &cYou cannot open this collection chest because it is already opened by another player."));
             return;
         }
 
         if (FantasyCollectionChests.getInstance().getChestInventory().registerPlayerChest(player, collectionChest)) {
             // Open the collection chest inventory for the player
             FantasyCollectionChests.getInstance().getChestInventory().openInventory(player, collectionChest);
-            player.sendMessage(CommonsUtil.color("&a&lFantasy&f&lCChest &7&l➥ &aYou have successfully opened the collection chest."));
+            player.sendMessage(CommonsUtil.color("&a&lCollection Chests &7&l➥ &aYou have successfully opened the collection chest."));
+            lastAccessed.put(chestUUID, System.currentTimeMillis());
         } else {
-            player.sendMessage(CommonsUtil.color("&a&lFantasy&f&lCChest &7&l➥ &cYou cannot open this collection chest because it is already opened by another player."));
+            player.sendMessage(CommonsUtil.color("&a&lCollection Chests &7&l➥ &cYou cannot open this collection chest because it is already opened by another player."));
         }
     }
 

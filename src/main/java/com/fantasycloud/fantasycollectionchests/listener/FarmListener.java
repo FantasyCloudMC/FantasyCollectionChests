@@ -2,6 +2,8 @@ package com.fantasycloud.fantasycollectionchests.listener;
 
 import com.fantasycloud.fantasycollectionchests.FantasyCollectionChests;
 import com.fantasycloud.fantasycollectionchests.struct.CollectionChest;
+import com.fantasycloud.fantasyenchants.FantasyEnchants;
+import me.krizzdawg.fantasycore.FantasyCore;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -35,11 +37,17 @@ public class FarmListener implements Listener {
         CollectionChest chest = FantasyCollectionChests.getInstance().getChestMemory().getChest(event.getEntity().getLocation());
         ItemStack itemStack = event.getEntity().getItemStack();
 
+        // Don't pick up special items in the chest
+        if (isEnchantItem(itemStack) || isSoulGem(itemStack) || isScrollItem(itemStack) || isSoulPearl(itemStack)) {
+            return;
+        }
+
         if (chest != null && FantasyCollectionChests.getInstance().getChestConfiguration().getAcceptedMaterials().contains(itemStack.getType())) {
             chest.getStorage().addItem(itemStack);
             event.getEntity().remove();
         }
     }
+
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
     public void onBlockBreak(BlockBreakEvent event) {
@@ -65,9 +73,16 @@ public class FarmListener implements Listener {
             List<ItemStack> toRemove = new ArrayList<>();
 
             for (ItemStack drop : drops) {
+                if (isEnchantItem(drop) || isSoulGem(drop) || isScrollItem(drop) || isSoulPearl(drop)) {
+                    block.getWorld().dropItemNaturally(block.getLocation(), drop);
+                    continue;
+                }
+
                 if (FantasyCollectionChests.getInstance().getChestConfiguration().getAcceptedMaterials().contains(drop.getType())) {
-                    chest.getStorage().addItem(drop);
-                    toRemove.add(drop);
+                    boolean wasAdded = chest.getStorage().addItem(drop);
+                    if (wasAdded) {
+                        toRemove.add(drop);
+                    }
                 }
             }
 
@@ -81,5 +96,22 @@ public class FarmListener implements Listener {
                 block.getWorld().dropItemNaturally(block.getLocation(), remainingDrop);
             }
         }
+    }
+
+
+    private boolean isScrollItem(ItemStack drop) {
+        return FantasyEnchants.getInstance().getEnchantsAPI().isScrollItem(drop);
+    }
+
+    private boolean isSoulGem(ItemStack drop) {
+        return FantasyEnchants.getInstance().getSoulHandler().isSoulGem(drop);
+    }
+
+    private boolean isEnchantItem(ItemStack drop) {
+        return FantasyEnchants.getInstance().getEnchantsAPI().isEnchantItem(drop);
+    }
+
+    private boolean isSoulPearl(ItemStack drop) {
+        return FantasyCore.getEnchantmentHandler().isSoulPearl(drop);
     }
 }
